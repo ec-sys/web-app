@@ -1,13 +1,5 @@
-# vue-advanced-chat-sandbox
+# vue-vuex-registration-login-example
 
-## Project setup
+Vue + Vuex - User Registration and Login Tutorial & Example
 
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-
-```
-npm run serve
-```
+To see a demo and further details go to http://jasonwatmore.com/post/2018/07/14/vue-vuex-user-registration-and-login-tutorial-example
