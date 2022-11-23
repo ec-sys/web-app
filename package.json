@@ -7,11 +7,11 @@
   },
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --open",
-    "build": "webpack --mode production"
+    "start": "webpack-dev-server --mode development --open",
+    "build": "webpack --env production --mode production"
   },
   "dependencies": {
-    "config": "^3.3.8",
+    "dotenv-webpack": "^8.0.1",
     "vee-validate": "^2.2.8",
     "vue": "^2.6.10",
     "vue-router": "^3.1.3",

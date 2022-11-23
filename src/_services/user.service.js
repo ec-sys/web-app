@@ -1,4 +1,3 @@
-import config from 'config'
 import { authHeader } from '../_helpers'
 
 export const userService = {
@@ -14,8 +13,8 @@ export const userService = {
 function login(username, password) {
   const params = {
     loginId: username,
-    password : password,
-    loginUserType: "CUSTOMER"
+    password: password,
+    loginUserType: 'CUSTOMER'
   }
 
   const requestOptions = {
@@ -24,7 +23,7 @@ function login(username, password) {
     body: JSON.stringify(params)
   }
 
-  return fetch(`${config.API_UAA_URL}/auth/login`, requestOptions)
+  return fetch(`${config.api.uaa}/auth/login`, requestOptions)
     .then(handleResponse)
     .then(user => {
       // login successful if there's a jwt token in the response
@@ -49,7 +48,7 @@ function register(user) {
     body: JSON.stringify(user)
   }
 
-  return fetch(`${config.apiUrl}/users/register`, requestOptions).then(handleResponse)
+  return fetch(`${config.api.uaa}/users/register`, requestOptions).then(handleResponse)
 }
 
 function getAll() {
@@ -58,7 +57,7 @@ function getAll() {
     headers: authHeader()
   }
 
-  return fetch(`${config.apiUrl}/users`, requestOptions).then(handleResponse)
+  return fetch(`${config.api.uaa}/users`, requestOptions).then(handleResponse)
 }
 
 
@@ -68,7 +67,7 @@ function getById(id) {
     headers: authHeader()
   }
 
-  return fetch(`${config.apiUrl}/users/${id}`, requestOptions).then(handleResponse)
+  return fetch(`${config.api.uaa}/users/${id}`, requestOptions).then(handleResponse)
 }
 
 function update(user) {
@@ -78,7 +77,7 @@ function update(user) {
     body: JSON.stringify(user)
   }
 
-  return fetch(`${config.apiUrl}/users/${user.id}`, requestOptions).then(handleResponse)
+  return fetch(`${config.api.uaa}/users/${user.id}`, requestOptions).then(handleResponse)
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
@@ -88,7 +87,7 @@ function _delete(id) {
     headers: authHeader()
   }
 
-  return fetch(`${config.apiUrl}/users/${id}`, requestOptions).then(handleResponse)
+  return fetch(`${config.api.uaa}/users/${id}`, requestOptions).then(handleResponse)
 }
 
 function handleResponse(response) {

@@ -4,25 +4,29 @@
 		<form @submit.prevent='handleSubmit'>
 			<div class='form-group'>
 				<label for='firstName'>First Name</label>
-				<input v-model='user.firstName' v-validate="'required'" :class="{ 'is-invalid': submitted && errors.has('firstName') }" class='form-control' name='firstName'
+				<input v-model='user.firstName' v-validate="'required'"
+							 :class="{ 'is-invalid': submitted && errors.has('firstName') }" class='form-control' name='firstName'
 							 type='text' />
 				<div v-if="submitted && errors.has('firstName')" class='invalid-feedback'>{{ errors.first('firstName') }}</div>
 			</div>
 			<div class='form-group'>
 				<label for='lastName'>Last Name</label>
-				<input v-model='user.lastName' v-validate="'required'" :class="{ 'is-invalid': submitted && errors.has('lastName') }" class='form-control' name='lastName'
+				<input v-model='user.lastName' v-validate="'required'"
+							 :class="{ 'is-invalid': submitted && errors.has('lastName') }" class='form-control' name='lastName'
 							 type='text' />
 				<div v-if="submitted && errors.has('lastName')" class='invalid-feedback'>{{ errors.first('lastName') }}</div>
 			</div>
 			<div class='form-group'>
 				<label for='username'>Username</label>
-				<input v-model='user.username' v-validate="'required'" :class="{ 'is-invalid': submitted && errors.has('username') }" class='form-control' name='username'
+				<input v-model='user.username' v-validate="'required'"
+							 :class="{ 'is-invalid': submitted && errors.has('username') }" class='form-control' name='username'
 							 type='text' />
 				<div v-if="submitted && errors.has('username')" class='invalid-feedback'>{{ errors.first('username') }}</div>
 			</div>
 			<div class='form-group'>
 				<label htmlFor='password'>Password</label>
-				<input v-model='user.password' v-validate='{ required: true, min: 6 }' :class="{ 'is-invalid': submitted && errors.has('password') }" class='form-control'
+				<input v-model='user.password' v-validate='{ required: true, min: 6 }'
+							 :class="{ 'is-invalid': submitted && errors.has('password') }" class='form-control'
 							 name='password' type='password' />
 				<div v-if="submitted && errors.has('password')" class='invalid-feedback'>{{ errors.first('password') }}</div>
 			</div>

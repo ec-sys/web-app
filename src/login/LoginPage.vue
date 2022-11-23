@@ -39,6 +39,8 @@ export default {
 		...mapState('account', ['status'])
 	},
 	created() {
+		commonUtils.sayHello()
+		console.log(`${config.api.uaa}/auth/login`)
 		// reset login status
 		this.logout()
 	},

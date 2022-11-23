@@ -1,4 +1,7 @@
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const webpack = require('webpack')
+const path = require('path')
+const Dotenv = require('dotenv-webpack')
 
 module.exports = {
     mode: 'development',
@@ -19,19 +22,18 @@ module.exports = {
             }
         ]
     },
-    plugins: [new HtmlWebpackPlugin({
-        template: './src/index.html'
-    })],
+    plugins: [
+        new Dotenv(),
+        new HtmlWebpackPlugin({ template: './src/index.html' }),
+        new webpack.ProvidePlugin({
+            commonUtils: path.resolve(path.join(__dirname, 'src/_utils/common.utils.js')),
+            stringUtils: path.resolve(path.join(__dirname, 'src/_utils/string.utils.js')),
+            config: path.resolve(path.join(__dirname, 'src/config.js'))
+        }),
+    ],
     devServer: {
         port: 4200,
         historyApiFallback: true
     },
-    externals: {
-        // global app config object
-        config: JSON.stringify({
-            apiUrl: 'http://localhost:4000',
-            API_UAA_URL: 'http://localhost:8080/api/uaa',
-            API_UAA_RTM: 'http://localhost:8080/api/rtm'
-        })
-    }
+    externals: {}
 }
