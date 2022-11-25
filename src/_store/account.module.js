@@ -1,7 +1,7 @@
 import { userService } from '../_services'
 import { router } from '../_helpers'
 
-const user = JSON.parse(localStorage.getItem('user'))
+const user = JSON.parse(localStorage.getItem(commonConstants.STORE_USER))
 const state = user
   ? { status: { loggedIn: true }, user }
   : { status: {}, user: null }
@@ -14,7 +14,7 @@ const actions = {
       .then(
         user => {
           commit('loginSuccess', user)
-          router.push('/')
+          router.push(commonConstants.URL_HOME_PAGE)
         },
         error => {
           commit('loginFailure', error)
@@ -33,7 +33,7 @@ const actions = {
       .then(
         user => {
           commit('registerSuccess', user)
-          router.push('/login')
+          router.push(commonConstants.URL_LOGIN_PAGE)
           setTimeout(() => {
             // display success message after route change completes
             dispatch('alert/success', 'Registration successful', { root: true })

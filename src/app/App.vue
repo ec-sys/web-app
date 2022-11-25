@@ -1,12 +1,7 @@
 <template>
   <div class='jumbotron'>
     <div class='container'>
-      <div class='row'>
-        <div class='col-sm-6 offset-sm-3'>
-          <div v-if='alert.message' :class='`alert ${alert.type}`'>{{ alert.message }}</div>
-          <router-view></router-view>
-        </div>
-      </div>
+      <router-view></router-view>
     </div>
   </div>
 </template>
@@ -34,3 +29,10 @@ export default {
   }
 }
 </script>
+<style>
+.jumbotron {
+    margin: 0px;
+    background-color: white;
+    height: 100%;
+}
+</style>

@@ -26,13 +26,14 @@ module.exports = {
         new Dotenv(),
         new HtmlWebpackPlugin({ template: './src/index.html' }),
         new webpack.ProvidePlugin({
+            commonConstants: path.resolve(path.join(__dirname, 'src/_constants/common.constant.js')),
             commonUtils: path.resolve(path.join(__dirname, 'src/_utils/common.utils.js')),
             stringUtils: path.resolve(path.join(__dirname, 'src/_utils/string.utils.js')),
             config: path.resolve(path.join(__dirname, 'src/config.js'))
         }),
     ],
     devServer: {
-        port: 4200,
+        port:4000,
         historyApiFallback: true
     },
     externals: {}
