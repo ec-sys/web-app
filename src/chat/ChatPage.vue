@@ -15,9 +15,10 @@
 
 <script>
 import { register } from 'vue-advanced-chat'
-var StompJs = require('@stomp/stompjs');
-// import { register } from '../../vue-advanced-chat/dist/vue-advanced-chat.es.js'
+import { Client, Message } from '@stomp/stompjs';
+
 register()
+
 export default {
   data() {
     return {
@@ -55,7 +56,7 @@ export default {
     // client.connect(headers, this.connectCallback, this.errorCallback);
 
 
-    const client = new StompJs.Client({
+    const client = new Client({
       brokerURL: 'ws://localhost:12090/ws/chat/websocket',
       connectHeaders: {
         login: 'user',
