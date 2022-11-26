@@ -57,8 +57,33 @@ export default {
           roomName: 'Room 1',
           avatar: 'https://66.media.tumblr.com/avatar_c6a8eae4303e_512.pnj',
           users: [
-            { _id: '1234', username: 'John Doe' },
-            { _id: '4321', username: 'John Snow' }
+            {
+              _id: '1234',
+              username: 'John Doe',
+              avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
+              status: {
+                state: 'online',
+                lastChanged: 'today, 14:30'
+              }
+            },
+            {
+              _id: '4321',
+              username: 'John Snow',
+              avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
+              status: {
+                state: 'online',
+                lastChanged: 'today, 14:30'
+              }
+            },
+            {
+              _id: 'abc',
+              username: 'John X',
+              avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
+              status: {
+                state: 'online',
+                lastChanged: 'today, 14:30'
+              }
+            }
           ]
         },
         {
@@ -66,8 +91,8 @@ export default {
           roomName: 'Room 2',
           avatar: 'https://66.media.tumblr.com/avatar_c6a8eae4303e_512.pnj',
           users: [
-            { _id: 'a1', username: 'John Doe' },
-            { _id: 'a2', username: 'John Snow' }
+            { _id: '1234', username: 'John Doe' },
+            { _id: 'a2', username: 'John 2' }
           ]
         },
         {
@@ -75,8 +100,8 @@ export default {
           roomName: 'Room 3',
           avatar: 'https://66.media.tumblr.com/avatar_c6a8eae4303e_512.pnj',
           users: [
-            { _id: 'b1', username: 'John Doe' },
-            { _id: 'b2', username: 'John Snow' }
+            { _id: '1234', username: 'John Doe' },
+            { _id: 'b2', username: 'John 3' }
           ]
         }
       ],
@@ -133,7 +158,7 @@ export default {
           this.messages = this.addMessages(true)
         } else {
           this.messages = [...this.addMessages(), ...this.messages]
-          // this.messagesLoaded = true
+          this.messagesLoaded = true
         }
         // this.addNewMessage()
       })
@@ -146,15 +171,27 @@ export default {
     },
     addMessages(reset) {
       const messages = []
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 5; i++) {
         messages.push({
           _id: reset ? i : this.messages.length + i,
           content: `${reset ? '' : 'paginated'} message ${i + 1}`,
           senderId: '4321',
-          username: 'John Doe',
+          username: 'John Snow',
+          avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
           date: '13 November',
           timestamp: '10:20'
-        })
+        });
+      }
+      for (let i = 0; i < 5; i++) {
+        messages.push({
+          _id: reset ? i : this.messages.length + i,
+          content: `${reset ? '' : 'paginated x'} message ${i + 1}`,
+          senderId: 'abc',
+          username: 'John X',
+          avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRKZ80vPmz0MbQo9ErHoPXkGekhxcK38nm3w&usqp=CAU',
+          date: '13 November',
+          timestamp: '10:20'
+        });
       }
       return messages
     },
