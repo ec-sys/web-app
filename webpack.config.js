@@ -36,5 +36,6 @@ module.exports = {
         port:4000,
         historyApiFallback: true
     },
+    devtool: "source-map",
     externals: {}
 }
