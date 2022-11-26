@@ -2,6 +2,7 @@
   <div>
     <h1>Hi {{ account.user.firstName }}!</h1>
     <p>
+      <router-link to='/chat'>Chat</router-link>
       <router-link to='/login'>Logout</router-link>
     </p>
   </div>
@@ -18,7 +19,6 @@ export default {
   },
   created() {
   },
-  methods: {
-  }
+  methods: {}
 }
 </script>

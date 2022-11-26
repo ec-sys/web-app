@@ -1,17 +1,19 @@
 <template>
-  <div class="d-flex justify-content-center">
+  <div class='d-flex justify-content-center'>
     <div class='login-wrapper'>
       <h2>Login</h2>
       <form @submit.prevent='handleSubmit'>
         <div class='form-group'>
           <label for='username'>Username</label>
-          <input v-model='username' :class="{ 'is-invalid': submitted && !username }" class='form-control' name='username'
+          <input v-model='username' :class="{ 'is-invalid': submitted && !username }" class='form-control'
+                 name='username'
                  type='text' />
           <div v-show='submitted && !username' class='invalid-feedback'>Username is required</div>
         </div>
         <div class='form-group'>
           <label htmlFor='password'>Password</label>
-          <input v-model='password' :class="{ 'is-invalid': submitted && !password }" class='form-control' name='password'
+          <input v-model='password' :class="{ 'is-invalid': submitted && !password }" class='form-control'
+                 name='password'
                  type='password' />
           <div v-show='submitted && !password' class='invalid-feedback'>Password is required</div>
         </div>
@@ -60,6 +62,6 @@ export default {
 </script>
 <style>
 .login-wrapper {
-    width: 500px;
+  width: 500px;
 }
 </style>

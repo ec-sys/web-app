@@ -31,8 +31,9 @@ export default {
 </script>
 <style>
 .jumbotron {
-    margin: 0px;
-    background-color: white;
-    height: 100%;
+  margin: 0px;
+  background-color: white;
+  height: 100%;
+  padding-bottom: 0px;
 }
 </style>
