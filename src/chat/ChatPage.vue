@@ -19,8 +19,11 @@
 <script>
 import { register } from 'vue-advanced-chat'
 import { Client, Message } from '@stomp/stompjs'
+import { mapState } from 'vuex'
 
 register()
+
+let clientSockJs;
 
 export default {
   data() {
@@ -109,14 +112,19 @@ export default {
       messagesLoaded: false
     }
   },
+  computed: {
+    ...mapState({
+      account: state => state.account
+    })
+  },
   mounted() {
-    console.log(config.api.rtm)
+    let accessToken = this.getAccessToken();
+    console.log(accessToken)
 
-    const client = new Client({
-      brokerURL: 'ws://localhost:12090/ws/chat/websocket',
+    clientSockJs = new Client({
+      brokerURL: 'ws://localhost:8080/ws/rtm/ws/chat/websocket',
       connectHeaders: {
-        login: 'user',
-        passcode: 'password'
+        'AUTH_TOKEN': accessToken
       },
       debug: function(str) {
         console.log(str)
@@ -126,13 +134,23 @@ export default {
       heartbeatOutgoing: 4000
     })
 
-    client.onConnect = function(frame) {
-      console.log('ok')
+    clientSockJs.configure();
+    clientSockJs.onConnect = this.sockJsConnectSuccess;
+
+    /*
+    clientSockJs.onConnect = function(frame) {
+      console.log('ok');
+      let updateConnectedUsers = function(res) {
+        console.log(res);
+      }
+      const headers = { userId: "11213" };
+      clientSockJs.subscribe('/chatroom/connected.users', updateConnectedUsers, headers);
       // Do something, all subscribes must be done is this callback
       // This is needed because this will be executed after a (re)connect
     }
+     */
 
-    client.onStompError = function(frame) {
+    clientSockJs.onStompError = function(frame) {
       // Will be invoked in case of error encountered at Broker
       // Bad login/passcode typically will cause an error
       // Complaint brokers will set `message` header with a brief message. Body may contain details.
@@ -141,9 +159,39 @@ export default {
       console.log('Additional details: ' + frame.body)
     }
 
-    client.activate()
+    clientSockJs.activate()
   },
   methods: {
+    getHeader(paramHeader) {
+      let header = {
+        AUTH_TOKEN : this.getAccessToken()
+      }
+      return header;
+    },
+    sockJsConnectSuccess(frame) {
+      console.log('ok');
+      const headers = { userId: this.getUserId() };
+      clientSockJs.subscribe('/chatroom/connected.users', this.connectedUsers, headers);
+    },
+    connectedUsers(response) {
+      console.log(response);
+    },
+    test() {
+      let request = {
+        userId: this.getUserId()
+      }
+      clientSockJs.publish({
+        destination: '/chatroom/room.get-joined-room',
+        body: JSON.stringify(request),
+        headers: { 'AUTH_TOKEN': this.getAccessToken() },
+      });
+    },
+    getAccessToken() {
+      return this.$store.state.account.user.token.accessToken;
+    },
+    getUserId() {
+      return this.$store.state.account.user.userId;
+    },
     connectCallback(data) {
       console.log('ok')
       console.log(data)
@@ -196,6 +244,7 @@ export default {
       return messages
     },
     sendMessage(message) {
+      this.test();
       this.messages = [
         ...this.messages,
         {
