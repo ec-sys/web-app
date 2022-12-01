@@ -20,6 +20,7 @@
 import { register } from 'vue-advanced-chat'
 import { Client, Message } from '@stomp/stompjs'
 import { mapState } from 'vuex'
+import { roomService } from '../_services'
 
 register()
 
@@ -28,7 +29,7 @@ let clientSockJs;
 export default {
   data() {
     return {
-      currentUserId: '1234',
+      currentUserId: this.getUserId(),
       roomActions: [
         { name: 'inviteUser', title: 'Invite User' },
         { name: 'removeUser', title: 'Remove User' },
@@ -109,7 +110,9 @@ export default {
         }
       ],
       messages: [],
-      messagesLoaded: false
+      messagesLoaded: false,
+      WS_CHAT_URL: config.ws.rtm + '/ws/chat/websocket',
+      currentPage: 0,
     }
   },
   computed: {
@@ -118,14 +121,9 @@ export default {
     })
   },
   mounted() {
-    let accessToken = this.getAccessToken();
-    console.log(accessToken)
-
     clientSockJs = new Client({
-      brokerURL: 'ws://localhost:8080/ws/rtm/ws/chat/websocket',
-      connectHeaders: {
-        'AUTH_TOKEN': accessToken
-      },
+      brokerURL: this.WS_CHAT_URL,
+      connectHeaders: this.headerWSAuth(),
       debug: function(str) {
         console.log(str)
       },
@@ -136,42 +134,25 @@ export default {
 
     clientSockJs.configure();
     clientSockJs.onConnect = this.sockJsConnectSuccess;
-
-    /*
-    clientSockJs.onConnect = function(frame) {
-      console.log('ok');
-      let updateConnectedUsers = function(res) {
-        console.log(res);
-      }
-      const headers = { userId: "11213" };
-      clientSockJs.subscribe('/chatroom/connected.users', updateConnectedUsers, headers);
-      // Do something, all subscribes must be done is this callback
-      // This is needed because this will be executed after a (re)connect
-    }
-     */
-
-    clientSockJs.onStompError = function(frame) {
-      // Will be invoked in case of error encountered at Broker
-      // Bad login/passcode typically will cause an error
-      // Complaint brokers will set `message` header with a brief message. Body may contain details.
-      // Compliant brokers will terminate the connection after any error
-      console.log('Broker reported error: ' + frame.headers['message'])
-      console.log('Additional details: ' + frame.body)
-    }
+    clientSockJs.onStompError = this.sockJsConnectError;
 
     clientSockJs.activate()
   },
   methods: {
-    getHeader(paramHeader) {
-      let header = {
-        AUTH_TOKEN : this.getAccessToken()
-      }
-      return header;
+    headerWSAuth() {
+      return commonUtils.getWSAuthHeader();
     },
     sockJsConnectSuccess(frame) {
-      console.log('ok');
-      const headers = { userId: this.getUserId() };
-      clientSockJs.subscribe('/chatroom/connected.users', this.connectedUsers, headers);
+      // const headers = { userId: this.getUserId() };
+      // clientSockJs.subscribe('/chatroom/connected.users', this.connectedUsers, headers);
+      roomService.getJoinedRooms(this.currentPage, this.handleGetJoinedRooms)
+    },
+    handleGetJoinedRooms(response) {
+      console.log(response);
+    },
+    sockJsConnectError(frame) {
+      console.error('Broker reported error: ' + frame.headers['message'])
+      console.error('Additional details: ' + frame.body)
     },
     connectedUsers(response) {
       console.log(response);
@@ -180,10 +161,11 @@ export default {
       let request = {
         userId: this.getUserId()
       }
+      let headersObj = this.headerWSAuth();
       clientSockJs.publish({
         destination: '/chatroom/room.get-joined-room',
         body: JSON.stringify(request),
-        headers: { 'AUTH_TOKEN': this.getAccessToken() },
+        headers: headersObj,
       });
     },
     getAccessToken() {

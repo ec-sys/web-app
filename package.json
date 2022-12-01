@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@stomp/stompjs": "^6.1.2",
+    "axios": "^1.2.0",
     "dotenv-webpack": "^8.0.1",
     "vee-validate": "^2.2.8",
     "vue": "^2.6.10",

@@ -5,6 +5,9 @@ const local = {
   api: {
     uaa: 'http://localhost:8080/api/uaa',
     rtm: 'http://localhost:8080/api/rtm'
+  },
+  ws: {
+    rtm: 'ws://localhost:8080/ws/rtm'
   }
 }
 
