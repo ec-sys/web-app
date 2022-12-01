@@ -8,7 +8,7 @@
       :rooms='JSON.stringify(rooms)'
       :room-actions='JSON.stringify(roomActions)'
       :rooms-loaded='roomsLoaded'
-      :loading-rooms="isLoadingRoom"
+      :loading-rooms="firstLoadingRoom"
       :text-messages='JSON.stringify(textMessages)'
       @room-action-handler='roomActionHandler($event.detail[0])'
       height='calc(100vh - 100px)'
@@ -66,7 +66,8 @@ export default {
       WS_CHAT_URL: config.ws.rtm + '/ws/chat/websocket',
       currentPageRoom: 0,
       currentPageMsg: 0,
-      isLoadingRoom: true,
+      firstLoadingRoom: true,
+      isLoadingRoom: false,
       isLoadingMsg: false,
       isResetRoom: false,
       currentRoomId: null,
@@ -107,13 +108,16 @@ export default {
       // clientSockJs.subscribe('/chatroom/connected.users', this.connectedUsers, headers);
       this.getJoinedRooms();
     },
+    connectedUsers(response) {
+      console.log(response);
+    },
     fetchMoreRooms() {
-      console.log("fetchMoreRooms");
       if(this.isLoadingRoom) return;
       this.currentPageRoom++;
-      roomService.getJoinedRooms(this.currentPageRoom, this.handleGetJoinedRooms);
+      this.getJoinedRooms();
     },
     getJoinedRooms() {
+      this.isLoadingRoom = true;
       roomService.getJoinedRooms(this.currentPageRoom, this.handleGetJoinedRooms);
     },
     handleGetJoinedRooms(response) {
@@ -152,14 +156,20 @@ export default {
       } else {
         console.error(response);
       }
+      this.setLoadingRoomStatus()
+    },
+    // frame work is error then temporary fix
+    setLoadingRoomStatus() {
+      if(this.firstLoadingRoom) this.firstLoadingRoom = false;
       if(this.isLoadingRoom) this.isLoadingRoom = false;
+      this.roomsLoaded = true;
+      setTimeout(() => {
+        this.roomsLoaded = false;
+      }, 100);
     },
     sockJsConnectError(frame) {
       console.error('Broker reported error: ' + frame.headers['message'])
       console.error('Additional details: ' + frame.body)
-    },
-    connectedUsers(response) {
-      console.log(response);
     },
     test() {
       let request = {
@@ -217,13 +227,20 @@ export default {
         } else {
           this.messages = [...messages, ...this.messages]
         }
-        if(this.messages.length == 0 && oldLength == 0) {
-          this.messages.push({});
-        }
       } else {
         console.error(response);
       }
+      this.setLoadingMsgStatus();
+    },
+    // frame work is error then temporary fix
+    setLoadingMsgStatus() {
       this.isLoadingMsg = false;
+      if(this.messages.length == 0) {
+        this.messagesLoaded = true;
+        setTimeout(() => {
+          this.messagesLoaded = false;
+        }, 100);
+      }
     },
     roomActionHandler({ roomId, action }) {
       switch (action.name) {
