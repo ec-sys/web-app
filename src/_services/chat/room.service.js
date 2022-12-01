@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const roomService = {
-  getJoinedRooms
+  getJoinedRooms, getRoomMessages
 }
 
 function getJoinedRooms(pageNumber, handleResponse) {
@@ -15,6 +15,21 @@ function getJoinedRooms(pageNumber, handleResponse) {
   };
 
   axios.post(config.api.rtm + '/room/chat-user/find-joined-room', params, headers)
+    .then(handleResponse) // handle ok
+    .catch(handleResponse) // handle error
+    .then(function () {}); // always executed
+}
+
+function getRoomMessages(roomId, pageNumber, handleResponse) {
+  const params = {
+    roomId: roomId,
+    currentPage: pageNumber
+  }
+  const headers = {
+    headers: commonUtils.getApiHeaderJson()
+  };
+
+  axios.post(config.api.rtm + '/room/chat-user/get-room-messages', params, headers)
     .then(handleResponse) // handle ok
     .catch(handleResponse) // handle error
     .then(function () {}); // always executed

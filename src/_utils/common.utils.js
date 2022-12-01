@@ -26,6 +26,10 @@ export function getApiHeaderJson() {
     'Content-Type': 'application/json'
   };
 }
+export function isResponseOK(response) {
+  if(isObjectNull(response)) return false;
+  return response.statusText === "OK";
+}
 export function getStoreUser() {
   return JSON.parse(localStorage.getItem(commonConstants.STORE_USER));
 }

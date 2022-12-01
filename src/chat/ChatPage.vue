@@ -3,15 +3,18 @@
     <vue-advanced-chat
       :current-user-id='currentUserId'
       :messages='JSON.stringify(messages)'
-      :messages-loaded='messagesLoaded'
       :messages-actions="JSON.stringify(messageActions)"
+      :messages-loaded="messagesLoaded"
       :rooms='JSON.stringify(rooms)'
-      :rooms-loaded='true'
       :room-actions='JSON.stringify(roomActions)'
+      :rooms-loaded='roomsLoaded'
+      :loading-rooms="isLoadingRoom"
+      :text-messages='JSON.stringify(textMessages)'
       @room-action-handler='roomActionHandler($event.detail[0])'
       height='calc(100vh - 100px)'
       @send-message='sendMessage($event.detail[0])'
       @fetch-messages='fetchMessages($event.detail[0])'
+      @fetch-more-rooms='fetchMoreRooms'
     />
   </div>
 </template>
@@ -35,7 +38,7 @@ export default {
         { name: 'removeUser', title: 'Remove User' },
         { name: 'deleteRoom', title: 'Delete Room' }
       ],
-      messageActions:[
+      messageActions: [
         {
           name: 'replyMessage',
           title: 'Reply'
@@ -55,64 +58,20 @@ export default {
           title: 'Select'
         }
       ],
-      rooms: [
-        {
-          roomId: '1',
-          roomName: 'Room 1',
-          avatar: 'https://66.media.tumblr.com/avatar_c6a8eae4303e_512.pnj',
-          users: [
-            {
-              _id: '1234',
-              username: 'John Doe',
-              avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
-              status: {
-                state: 'online',
-                lastChanged: 'today, 14:30'
-              }
-            },
-            {
-              _id: '4321',
-              username: 'John Snow',
-              avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
-              status: {
-                state: 'online',
-                lastChanged: 'today, 14:30'
-              }
-            },
-            {
-              _id: 'abc',
-              username: 'John X',
-              avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
-              status: {
-                state: 'online',
-                lastChanged: 'today, 14:30'
-              }
-            }
-          ]
-        },
-        {
-          roomId: '2',
-          roomName: 'Room 2',
-          avatar: 'https://66.media.tumblr.com/avatar_c6a8eae4303e_512.pnj',
-          users: [
-            { _id: '1234', username: 'John Doe' },
-            { _id: 'a2', username: 'John 2' }
-          ]
-        },
-        {
-          roomId: '3',
-          roomName: 'Room 3',
-          avatar: 'https://66.media.tumblr.com/avatar_c6a8eae4303e_512.pnj',
-          users: [
-            { _id: '1234', username: 'John Doe' },
-            { _id: 'b2', username: 'John 3' }
-          ]
-        }
-      ],
+      textMessages: {
+        MESSAGES_EMPTY: 'not messages not found',
+      },
+      rooms: [],
       messages: [],
-      messagesLoaded: false,
       WS_CHAT_URL: config.ws.rtm + '/ws/chat/websocket',
-      currentPage: 0,
+      currentPageRoom: 0,
+      currentPageMsg: 0,
+      isLoadingRoom: true,
+      isLoadingMsg: false,
+      isResetRoom: false,
+      currentRoomId: null,
+      roomsLoaded: false,
+      messagesLoaded: false
     }
   },
   computed: {
@@ -121,6 +80,7 @@ export default {
     })
   },
   mounted() {
+    // configure client sock-js
     clientSockJs = new Client({
       brokerURL: this.WS_CHAT_URL,
       connectHeaders: this.headerWSAuth(),
@@ -131,11 +91,11 @@ export default {
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000
     })
-
     clientSockJs.configure();
+
+    // connect to ws server
     clientSockJs.onConnect = this.sockJsConnectSuccess;
     clientSockJs.onStompError = this.sockJsConnectError;
-
     clientSockJs.activate()
   },
   methods: {
@@ -145,10 +105,54 @@ export default {
     sockJsConnectSuccess(frame) {
       // const headers = { userId: this.getUserId() };
       // clientSockJs.subscribe('/chatroom/connected.users', this.connectedUsers, headers);
-      roomService.getJoinedRooms(this.currentPage, this.handleGetJoinedRooms)
+      this.getJoinedRooms();
+    },
+    fetchMoreRooms() {
+      console.log("fetchMoreRooms");
+      if(this.isLoadingRoom) return;
+      this.currentPageRoom++;
+      roomService.getJoinedRooms(this.currentPageRoom, this.handleGetJoinedRooms);
+    },
+    getJoinedRooms() {
+      roomService.getJoinedRooms(this.currentPageRoom, this.handleGetJoinedRooms);
     },
     handleGetJoinedRooms(response) {
-      console.log(response);
+      if(commonUtils.isResponseOK(response)) {
+        let data = response.data;
+        let rooms = [];
+        data.roomItems.forEach((roomItem) => {
+          // room info
+          let roomObj = {
+            roomId: roomItem.id,
+            roomName: roomItem.name,
+            avatar: roomItem.avatar
+          }
+          // room member info
+          let users = [];
+          roomItem.members.forEach((member) => {
+            users.push({
+              _id: member.userId,
+              username: member.name,
+              avatar: member.avatar,
+              status: {
+                state: 'online',
+                lastChanged: 'today, 14:30'
+              }
+            })
+          });
+          roomObj.users = users;
+          rooms.push(roomObj);
+        });
+
+        // show new rooms if has
+        if(rooms.length > 0) {
+          this.rooms = [...rooms, ...this.rooms];
+          // this.rooms = rooms;
+        }
+      } else {
+        console.error(response);
+      }
+      if(this.isLoadingRoom) this.isLoadingRoom = false;
     },
     sockJsConnectError(frame) {
       console.error('Broker reported error: ' + frame.headers['message'])
@@ -168,62 +172,64 @@ export default {
         headers: headersObj,
       });
     },
-    getAccessToken() {
-      return this.$store.state.account.user.token.accessToken;
-    },
     getUserId() {
       return this.$store.state.account.user.userId;
     },
-    connectCallback(data) {
-      console.log('ok')
-      console.log(data)
-    },
-    errorCallback(error) {
-      console.log('error')
-      console.log(error)
-    },
     fetchMessages({ room, options = {} }) {
-      setTimeout(() => {
-        if (options.reset) {
-          this.messages = this.addMessages(true)
+      this.isLoadingMsg = true;
+      let roomId = room.roomId;
+      this.currentRoomId = roomId;
+
+      if (options.reset) {
+        this.isResetRoom = true;
+        this.currentPageMsg = 0;
+        roomService.getRoomMessages(roomId, this.currentPageMsg, this.handleGetRoomMessages);
+      } else {
+        this.isResetRoom = false;
+        this.currentPageMsg++;
+        roomService.getRoomMessages(roomId, this.currentPageMsg, this.handleGetRoomMessages);
+      }
+    },
+    handleGetRoomMessages(response) {
+      console.log('roomId : ' + this.currentRoomId);
+      if(commonUtils.isResponseOK(response)) {
+        let data = response.data;
+        let messages = [];
+        data.messageItems.forEach((msgItem) => {
+          // room info
+          let msgObj = {
+            _id: msgItem.id,
+            content: msgItem.content,
+            senderId: msgItem.senderId,
+            date: msgItem.date,
+            timestamp: msgItem.timestamp,
+          }
+          // room member info
+          msgObj.username = 'John Snow';
+          msgObj.avatar = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png';
+          messages.push(msgObj);
+        });
+
+        // show message if has
+        let oldLength = this.messages.length;
+        if(this.isResetRoom) {
+          this.messages = messages;
         } else {
-          this.messages = [...this.addMessages(), ...this.messages]
-          this.messagesLoaded = true
+          this.messages = [...messages, ...this.messages]
         }
-        // this.addNewMessage()
-      })
+        if(this.messages.length == 0 && oldLength == 0) {
+          this.messages.push({});
+        }
+      } else {
+        console.error(response);
+      }
+      this.isLoadingMsg = false;
     },
     roomActionHandler({ roomId, action }) {
       switch (action.name) {
         case 'archiveRoom':
         // call a method to archive the room
       }
-    },
-    addMessages(reset) {
-      const messages = []
-      for (let i = 0; i < 5; i++) {
-        messages.push({
-          _id: reset ? i : this.messages.length + i,
-          content: `${reset ? '' : 'paginated'} message ${i + 1}`,
-          senderId: '4321',
-          username: 'John Snow',
-          avatar: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png',
-          date: '13 November',
-          timestamp: '10:20'
-        });
-      }
-      for (let i = 0; i < 5; i++) {
-        messages.push({
-          _id: reset ? i : this.messages.length + i,
-          content: `${reset ? '' : 'paginated x'} message ${i + 1}`,
-          senderId: 'abc',
-          username: 'John X',
-          avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRKZ80vPmz0MbQo9ErHoPXkGekhxcK38nm3w&usqp=CAU',
-          date: '13 November',
-          timestamp: '10:20'
-        });
-      }
-      return messages
     },
     sendMessage(message) {
       this.test();
