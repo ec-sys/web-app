@@ -2,6 +2,7 @@ import { register } from 'vue-advanced-chat'
 import { Client, Message } from '@stomp/stompjs'
 import { mapState } from 'vuex'
 import { roomService } from '../_services'
+import {handleFetchRooms} from './room-component'
 
 register()
 
@@ -104,6 +105,7 @@ export default {
       roomService.getJoinedRooms(this.currentPageRoom, this.handleGetJoinedRooms);
     },
     handleGetJoinedRooms(response) {
+      // handleFetchRooms(response, this.rooms);
       if(commonUtils.isResponseOK(response)) {
         let data = response.data;
         let rooms = [];
@@ -141,7 +143,7 @@ export default {
       } else {
         console.error(response);
       }
-      this.setLoadingRoomStatus()
+      this.setLoadingRoomStatus();
     },
     // frame work is error then temporary fix
     setLoadingRoomStatus() {
