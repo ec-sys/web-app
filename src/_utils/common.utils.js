@@ -34,3 +34,11 @@ export function getStoreUser() {
   return JSON.parse(localStorage.getItem(commonConstants.STORE_USER));
 }
 
+export function changeTimezone(targetDate, newTimeZone) {
+  let newDate = new Date(targetDate.toLocaleString('en-US', { timeZone: newTimeZone }));
+  let diff = targetDate.getTime() - newDate.getTime();
+  return new Date(targetDate.getTime() - diff);
+}
+export function getDateNowHaiNoi() {
+  return changeTimezone(new Date(), "Asia/Ho_Chi_Minh");
+}

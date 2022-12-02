@@ -1,4 +1,5 @@
 import { authHeader } from '../_helpers'
+import { use } from 'vee-validate/dist/vee-validate.minimal.esm'
 
 export const userService = {
   login,
@@ -28,6 +29,7 @@ function login(username, password) {
     .then(user => {
       // login successful if there's a jwt token in the response
       if (user.token) {
+        user.fullName = user.firstName + " " + user.lastName;
         // store user details and jwt token in local storage to keep user logged in between page refreshes
         localStorage.setItem(commonConstants.STORE_USER, JSON.stringify(user))
       }

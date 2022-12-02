@@ -63,5 +63,6 @@ export default {
 <style>
 .login-wrapper {
   width: 500px;
+  margin-top: 100px;
 }
 </style>
