@@ -42,3 +42,17 @@ export function changeTimezone(targetDate, newTimeZone) {
 export function getDateNowHaiNoi() {
   return changeTimezone(new Date(), "Asia/Ho_Chi_Minh");
 }
+
+export function getFullMonthName(targetDate) {
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  return monthNames[targetDate.getMonth()];
+}
+
+/**
+ * format example: 1 December; 13 January
+ */
+export function getDateAndFullMonthName(targetDate) {
+  return targetDate.getDate() + " " + getFullMonthName(targetDate);
+}

@@ -3,6 +3,16 @@
 // resources:
 //  -- mout, https://github.com/mout/mout/tree/master/src/string
 
+export function isEmpty(str) {
+  if(str === undefined || str === null) return true;
+  if(str.trim() == "") return true;
+  return false;
+}
+
+export function isNotEmpty(str) {
+  return !isEmpty(str);
+}
+
 /**
  * "Safer" String.toLowerCase()
  */

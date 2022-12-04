@@ -13,6 +13,7 @@
   "dependencies": {
     "@stomp/stompjs": "^6.1.2",
     "axios": "^1.2.0",
+    "bson": "^4.7.0",
     "dotenv-webpack": "^8.0.1",
     "nanoid": "^4.0.0",
     "vee-validate": "^2.2.8",

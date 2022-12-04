@@ -30,6 +30,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import {userService} from '../_services'
 
 export default {
   name: 'app',
@@ -52,6 +53,9 @@ export default {
       // clear alert on location change
       this.clearAlert()
     }
+  },
+  mounted() {
+    setInterval(userService.refreshToken, 30 * 60 * 1000);
   }
 }
 </script>

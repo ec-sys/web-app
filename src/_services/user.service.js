@@ -1,9 +1,10 @@
 import { authHeader } from '../_helpers'
-import { use } from 'vee-validate/dist/vee-validate.minimal.esm'
+import { isObjectNull } from '../_utils/common.utils'
 
 export const userService = {
   login,
   logout,
+  refreshToken,
   register,
   getAll,
   getById,
@@ -35,6 +36,35 @@ function login(username, password) {
       }
       return user
     })
+}
+
+function refreshToken() {
+  const storeUser = commonUtils.getStoreUser();
+  if(commonUtils.isObjectNull(storeUser) || commonUtils.isObjectNull(storeUser.token)) {
+    logout();
+    location.reload(true);
+  }
+
+  const params = {
+    accessToken: storeUser.token.accessToken,
+    refreshToken: storeUser.token.refreshToken
+  }
+
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  }
+
+  return fetch(`${config.api.uaa}/auth/refresh-token`, requestOptions)
+    .then(handleResponse)
+    .then(response => {
+      if (stringUtils.isEmpty(response.errorCode)) {
+        storeUser.token.accessToken = response.accessToken;
+        storeUser.token.refreshToken = response.refreshToken;
+        localStorage.setItem(commonConstants.STORE_USER, JSON.stringify(storeUser));
+      }
+    });
 }
 
 function logout() {

@@ -2,7 +2,8 @@ import { register } from 'vue-advanced-chat'
 import { Client, Message } from '@stomp/stompjs'
 import { mapState } from 'vuex'
 import { roomService } from '../_services'
-import {handleFetchRooms} from './room-component'
+import {handleFetchRooms} from './room.logic'
+import { buildMessage, updateUserDataOfMessage } from './message.logic'
 
 register()
 
@@ -46,7 +47,7 @@ export default {
       rooms: [],
       messages: [],
       WS_CHAT_URL: config.ws.rtm + '/ws/chat/websocket',
-      tempMsgIds: new Map(),
+      tempMsgIds: new Set(),
       currentPageRoom: 0,
       currentPageMsg: 0,
       firstLoadingRoom: true,
@@ -69,9 +70,7 @@ export default {
     clientSockJs = new Client({
       brokerURL: this.WS_CHAT_URL,
       connectHeaders: this.headerWSAuth(),
-      debug: function(str) {
-        console.log(str)
-      },
+      debug: function(str) {},
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000
@@ -81,19 +80,16 @@ export default {
     // connect to ws server
     clientSockJs.onConnect = this.sockJsConnectSuccess;
     clientSockJs.onStompError = this.sockJsConnectError;
-    clientSockJs.activate()
+    clientSockJs.activate();
   },
   methods: {
     headerWSAuth() {
       return commonUtils.getWSAuthHeader();
     },
     sockJsConnectSuccess(frame) {
-      // const headers = { userId: this.getUserId() };
-      // clientSockJs.subscribe('/chatroom/connected.users', this.connectedUsers, headers);
+      this.rooms = [];
+      this.messages = [];
       this.getJoinedRooms();
-    },
-    connectedUsers(response) {
-      console.log(response);
     },
     fetchMoreRooms() {
       if(this.isLoadingRoom) return;
@@ -107,38 +103,10 @@ export default {
     handleGetJoinedRooms(response) {
       // handleFetchRooms(response, this.rooms);
       if(commonUtils.isResponseOK(response)) {
-        let data = response.data;
-        let rooms = [];
-        data.roomItems.forEach((roomItem) => {
-          // room info
-          let roomObj = {
-            roomId: roomItem.id,
-            roomName: roomItem.name,
-            avatar: roomItem.avatar
-          }
-          // room member info
-          let users = [];
-          roomItem.members.forEach((member) => {
-            users.push({
-              _id: member.userId,
-              username: member.name,
-              avatar: member.avatar,
-              status: {
-                state: 'online',
-                lastChanged: 'today, 14:30'
-              }
-            })
-          });
-
-          console.log(users);
-          roomObj.users = users;
-          rooms.push(roomObj);
-        });
-
+        let rooms = handleFetchRooms(response);
         // show new rooms if has
         if(rooms.length > 0) {
           this.rooms = [...rooms, ...this.rooms];
-          // this.rooms = rooms;
         }
       } else {
         console.error(response);
@@ -166,6 +134,7 @@ export default {
       let roomId = room.roomId;
 
       if (options.reset) {
+        // open new room then clear new room data and relation data
         this.currentRoom = room;
         this.isResetRoom = true;
         this.messagesLoaded = false;
@@ -176,7 +145,7 @@ export default {
         });
 
         this.currentPageMsg = 0;
-        this.tempMsgIds.clear();
+        this.tempMsgIds.clear()
 
         roomSubscription = clientSockJs.subscribe('/topic/' + roomId + '.public.messages', this.publicMessages);
         roomService.getRoomMessages(roomId, this.currentPageMsg, this.handleGetRoomMessages);
@@ -190,6 +159,7 @@ export default {
       let message = JSON.parse(response.body);
       let tempMsgId = message.tempMessageId;
       if(this.tempMsgIds.has(tempMsgId)) {
+        // if send message by this then update again message from server data
         let updateMsgObj = undefined;
         let updateMsgIdx = 0;
         this.messages.forEach((item, index) => {
@@ -199,38 +169,30 @@ export default {
             return;
           }
         });
+        // found, update
         if(updateMsgObj != undefined) {
           updateMsgObj._id = message.messageId;
           this.messages[updateMsgIdx] = updateMsgObj;
-          this.tempMsgIds.set(tempMsgId, true);
+          this.tempMsgIds.delete(tempMsgId);
         }
       } else {
-        let msgObj = {};
-        msgObj.id = message.messageId;
-        msgObj.senderId = message.senderId;
+        // if send message by other then add message from server data
+        let msgObj = buildMessage(message);
+        msgObj._id = message.messageId;
         msgObj.content = message.text;
-        msgObj.timestamp = message.timestamp;
-        msgObj.date = message.date;
         this.addNewMessage(msgObj);
       }
     },
     handleGetRoomMessages(response) {
-      console.log('currentRoomId : ' + this.currentRoom.roomId);
       if(commonUtils.isResponseOK(response)) {
         let data = response.data;
         let messages = [];
 
         data.messageItems.forEach((msgItem) => {
           // room info
-          let msgObj = {
-            _id: msgItem.id,
-            content: msgItem.content,
-            senderId: msgItem.senderId,
-            date: msgItem.date,
-            timestamp: msgItem.timestamp,
-          }
+          let msgObj = buildMessage(msgItem);
           // room member info
-          this.updateUserDataOfMessage(msgObj);
+          updateUserDataOfMessage(msgObj, this.mapUsers);
           messages.push(msgObj);
         });
 
@@ -266,11 +228,11 @@ export default {
     },
     sendMessage(message) {
       let tempMsgId = Nanoid.nanoid();
-      this.tempMsgIds.set(tempMsgId, false);
+      this.tempMsgIds.add(tempMsgId);
 
       let dateNow = commonUtils.getDateNowHaiNoi();
       let timestamp = dateNow.toString().substring(16, 21);
-      let date = dateNow.toDateString();
+      let date = commonUtils.getDateAndFullMonthName(dateNow);
 
       let request = {
         tempMessageId: tempMsgId,
@@ -287,32 +249,18 @@ export default {
         headers: headersObj,
       });
 
-      message.id = tempMsgId;
-      message.senderId = this.currentUserId;
-      message.timestamp = timestamp;
-      message.date = date;
-      this.addNewMessage(message)
-    },
-    addNewMessage(message) {
       let msgObj = {
-        _id: message.id,
+        _id: tempMsgId,
         content: message.content,
-        senderId: message.senderId,
-        timestamp: message.timestamp,
-        date: message.date
+        senderId: this.currentUserId,
+        timestamp: timestamp,
+        date: date
       }
-      this.updateUserDataOfMessage(msgObj);
-      this.messages = [...this.messages, msgObj];
+      this.addNewMessage(msgObj)
     },
-    updateUserDataOfMessage(msgObj) {
-      let user = this.mapUsers.get(msgObj.senderId);
-      if(commonUtils.isObjectNotNull(user)) {
-        msgObj.username = user.username;
-        msgObj.avatar = user.avatar;
-      } else {
-        msgObj.username = 'Anonymous';
-        msgObj.avatar = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Star-icon.png';
-      }
+    addNewMessage(msgObj) {
+      updateUserDataOfMessage(msgObj, this.mapUsers);
+      this.messages = [...this.messages, msgObj];
     }
   }
 }

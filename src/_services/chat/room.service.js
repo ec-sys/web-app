@@ -14,7 +14,7 @@ function getJoinedRooms(pageNumber, handleResponse) {
     headers: commonUtils.getApiHeaderJson()
   };
 
-  axios.post(config.api.rtm + '/room/chat-user/find-joined-room', params, headers)
+  axios.post(config.api.chat + '/room/find-joined-room', params, headers)
     .then(handleResponse) // handle ok
     .catch(handleResponse) // handle error
     .then(function () {}); // always executed
@@ -29,7 +29,7 @@ function getRoomMessages(roomId, pageNumber, handleResponse) {
     headers: commonUtils.getApiHeaderJson()
   };
 
-  axios.post(config.api.rtm + '/room/chat-user/get-room-messages', params, headers)
+  axios.post(config.api.chat + '/message/get-room-messages', params, headers)
     .then(handleResponse) // handle ok
     .catch(handleResponse) // handle error
     .then(function () {}); // always executed

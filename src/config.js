@@ -1,13 +1,14 @@
 // config.js
 const env = process.env.NODE_ENV // 'dev' or 'test'
 
+const localHostIp = process.env.LOCAL_HOST_IP || 'localhost'
 const local = {
   api: {
-    uaa: 'http://localhost:8080/api/uaa',
-    rtm: 'http://localhost:8080/api/rtm'
+    uaa: 'http://' + localHostIp + ':8080/api/uaa',
+    chat: 'http://' + localHostIp + ':8080/api/chat'
   },
   ws: {
-    rtm: 'ws://localhost:8080/ws/rtm'
+    rtm: 'ws://' + localHostIp + ':8080/ws/rtm'
   }
 }
 
