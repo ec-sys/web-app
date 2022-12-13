@@ -4,22 +4,32 @@
       <nav class="navbar navbar-expand-lg navbar-light" v-if="!isLoginPage">
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
+            <li class="nav-item active mr-3">
               <router-link to='/' class="nav-link">Home</router-link>
             </li>
-            <li class="nav-item">
-              <router-link to='/chat' class="nav-link">Chat</router-link>
+            <li class="nav-item dropdown mr-3">
+              <a class="nav-link dropdown-toggle" href="#" id="chatDropdown" role="button"
+                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Chat</a>
+              <div class="dropdown-menu" aria-labelledby="chatDropdown">
+                <router-link to='/chat' class="dropdown-item">Chat Room</router-link>
+                <router-link to='/chat' class="dropdown-item">Chat Individual</router-link>
+              </div>
             </li>
-            <li class="nav-item">
-              <router-link to='/chat-room' class="nav-link">Chat Room</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link to='/chat-person' class="nav-link">Chat Person</router-link>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="mngDropdown" role="button"
+                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Management</a>
+              <div class="dropdown-menu" aria-labelledby="mngDropdown">
+                <router-link to='/rooms' class="dropdown-item">Room</router-link>
+                <a class="dropdown-item" href="#">User</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Room Member</a>
+              </div>
             </li>
           </ul>
           <form class="form-inline my-2 my-lg-0">
             <router-link to='/login' class="nav-link">Logout</router-link>
-            <img :src="account.user.avatar" width="30" height="30" data-toggle="tooltip" :title="account.user.fullName">
+            <img :src="account.user.avatar" class='icon-avatar' width="30" height="30"
+                 data-toggle="tooltip" :title="account.user.fullName">
           </form>
         </div>
       </nav>
@@ -70,5 +80,8 @@ export default {
 .navbar {
   margin-bottom: 10px;
   background-color: #c4cede;
+}
+.icon-avatar  {
+  border-radius: 15px;
 }
 </style>

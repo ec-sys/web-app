@@ -13,6 +13,7 @@
   "dependencies": {
     "@stomp/stompjs": "^6.1.2",
     "axios": "^1.2.0",
+    "bootstrap-vue": "^2.23.1",
     "bson": "^4.7.0",
     "dotenv-webpack": "^8.0.1",
     "nanoid": "^4.0.0",

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Hi {{ account.user.firstName }}!</h1>
+    <h1>Hi {{ account.user.fullName }}!</h1>
   </div>
 </template>
 
