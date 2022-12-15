@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class='mt-4'>
     <div class='mb-5'>
       <b-form @submit="onSubmit" @reset="onClear">
         <b-form-group id="input-group-1" label="Room name:" label-for="input-1">
@@ -14,44 +14,111 @@
       </b-form>
     </div>
     <div class='overflow-auto mt-3'>
-      <b-table id='tbl-rooms' :bordered='true' :items='items' :per-page='perPage' :current-page='currentPage'></b-table>
-      <b-pagination v-model='currentPage' :total-rows='rows' :per-page='perPage' aria-controls='tbl-rooms' align='center'></b-pagination>
+      <b-table id='tbl-rooms' :bordered='true' :items='rooms' :fields="tblRoomFields" :per-page='perPage'
+               :current-page='currentPage' :filter-included-fields='filters' primary-key="id">
+        <template #cell(avatar)="avatar">
+          <img :src="avatar.value" class='icon-avatar' width="30" height="30">
+        </template>
+        <template #cell(status)="data">
+          <span v-if="data.item.joined" class='text-primary'>JOINED</span>
+          <span v-if="!data.item.joined" class='text-danger'>NON JOINED</span>
+        </template>
+        <template #cell(action)="data">
+          <span v-if="data.item.joined" class='text-info link-join' @click="leftToRoom(data.item.id)">LEFT</span>
+          <span v-if="!data.item.joined" class='text-info link-join' @click="joinToRoom(data.item.id)">JOIN</span>
+        </template>
+      </b-table>
+      <b-pagination v-model='currentPage' :total-rows='totalRoom' :per-page='perPage' aria-controls='tbl-rooms' align='center'></b-pagination>
     </div>
   </div>
 </template>
 
 <script>
+import { roomService } from '../_services'
+
 export default {
   data() {
     return {
-      perPage: 3,
+      perPage: 20,
       currentPage: 1,
-      items: [
-        { id: 1, first_name: 'Fred', last_name: 'Flintstone' },
-        { id: 2, first_name: 'Wilma', last_name: 'Flintstone' },
-        { id: 3, first_name: 'Barney', last_name: 'Rubble' },
-        { id: 4, first_name: 'Betty', last_name: 'Rubble' },
-        { id: 5, first_name: 'Pebbles', last_name: 'Flintstone' },
-        { id: 6, first_name: 'Bamm Bamm', last_name: 'Rubble' },
-        { id: 7, first_name: 'The Great', last_name: 'Gazzoo' },
-        { id: 8, first_name: 'Rockhead', last_name: 'Slate' },
-        { id: 9, first_name: 'Pearl', last_name: 'Slaghoople' }
+      totalRoom: 0,
+      tblRoomFields: [
+        {key: "name", label: "Name", thStyle: { width: "20%" }},
+        {key: "avatar", label: "Avatar", thStyle: { width: "10%" } },
+        {key: "description", label: "Description", thStyle: { width: "30%" }},
+        {key: "status", label: "Status", thStyle: { width: "20%" }},
+        {key: "action", label: "Action", thStyle: { width: "20%" }},
       ],
+      filters: ['name'],
+      rooms: [],
       search: {
         roomName: '',
         memberIds: ''
       }
     }
   },
+  mounted() {
+    this.firstLoadPage();
+  },
   computed: {
-    rows() {
-      return this.items.length
-    }
   },
   methods: {
+    firstLoadPage() {
+      roomService.searchRooms(this.search, this.handleSearchRooms);
+    },
+    handleSearchRooms(response) {
+      if(commonUtils.isResponseOK(response)) {
+        let roomItems = response.data.roomItems;
+        let roomArr = [];
+
+        // build
+        roomItems.forEach((room) => {
+          roomArr.push({
+            id : room.id, name : room.name, avatar : room.avatar, description : room.description, joined: room.joined
+          });
+        });
+
+        this.currentPage = 1;
+        this.rooms = roomArr;
+        this.totalRoom = roomArr.length;
+      } else {
+        console.error(response);
+      }
+    },
+    joinToRoom(roomId) {
+      roomService.joinToRoom(roomId, this.handleJoinLeftToRoom);
+      this.updateJoinedState(roomId, true);
+    },
+    leftToRoom(roomId) {
+      roomService.leftToRoom(roomId, this.handleJoinLeftToRoom);
+      this.updateJoinedState(roomId, false);
+    },
+    handleJoinLeftToRoom(response) {
+      if(commonUtils.isResponseOK(response)) {
+      } else {
+        console.error(response);
+      }
+    },
+    updateJoinedState(roomId, joined) {
+      let selectedRoom = undefined;
+      let selectedIdx = undefined;
+      // find selected room
+      this.rooms.forEach((room, index) => {
+        if(room.id === roomId) {
+          selectedRoom = room;
+          selectedIdx = index;
+          return;
+        }
+      });
+      // update room
+      if(selectedRoom != undefined) {
+        selectedRoom.joined = joined;
+        this.rooms[selectedIdx] = selectedRoom;
+      }
+    },
     onSubmit(event) {
       event.preventDefault();
-      alert(JSON.stringify(this.search));
+      roomService.searchRooms(this.search, this.handleSearchRooms);
     },
     onClear(event) {
       event.preventDefault();
@@ -64,5 +131,13 @@ export default {
 
 
 <style scoped>
-
+.icon-avatar {
+  border-radius: 15px;
+}
+.link-join {
+  text-decoration: underline;
+}
+.link-join:hover {
+  cursor: pointer;
+}
 </style>
