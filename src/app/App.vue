@@ -1,10 +1,13 @@
 <template>
   <div class='jumbotron'>
+    <div v-if='showToast' class='cus-toast-wrapper'>
+      <span :class="['text-white cus-toast-body', getToastClass]">{{toastMsg}}</span>
+    </div>
     <div class='container'>
       <nav class="navbar navbar-expand-lg navbar-light" v-if="!isLoginPage">
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item active mr-3">
+            <li class="nav-item mr-3">
               <router-link to='/' class="nav-link">Home</router-link>
             </li>
             <li class="nav-item dropdown mr-3">
@@ -19,7 +22,7 @@
               <a class="nav-link dropdown-toggle" href="#" id="mngDropdown" role="button"
                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Management</a>
               <div class="dropdown-menu" aria-labelledby="mngDropdown">
-                <router-link to='/rooms' class="dropdown-item">Room</router-link>
+                <router-link to='/mng/rooms' class="dropdown-item">Room</router-link>
                 <a class="dropdown-item" href="#">User</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="#">Room Member</a>
@@ -29,11 +32,13 @@
           <form class="form-inline my-2 my-lg-0">
             <router-link to='/login' class="nav-link">Logout</router-link>
             <img :src="account.user.avatar" class='icon-avatar' width="30" height="30"
-                 data-toggle="tooltip" :title="account.user.fullName">
+                 data-toggle="tooltip" :title="account.user.fullName" @click='gotoUserProfile'>
           </form>
         </div>
       </nav>
-      <router-view></router-view>
+      <div>
+        <router-view></router-view>
+      </div>
     </div>
   </div>
 </template>
@@ -43,6 +48,13 @@ import { mapState, mapActions } from 'vuex'
 import {userService} from '../_services'
 
 export default {
+  data() {
+    return {
+      showToast: false,
+      toastOK: false,
+      toastMsg: "none"
+    }
+  },
   name: 'app',
   computed: {
     ...mapState({
@@ -51,12 +63,25 @@ export default {
     }),
     isLoginPage() {
       return this.$route.path == "/login";
+    },
+    getToastClass () {
+      return this.toastOK ? 'bg-success' : 'bg-danger';
     }
   },
   methods: {
     ...mapActions({
       clearAlert: 'alert/clear'
-    })
+    }),
+    gotoUserProfile() {
+      this.$router.push('/user/profile');
+    },
+    handleToast(payload) {
+      this.toastOK = payload.isOK;
+      this.toastMsg = payload.msg;
+      this.showToast = true;
+      setTimeout(() => {this.showToast = false;}, 1500);
+    }
+
   },
   watch: {
     $route(to, from) {
@@ -66,6 +91,7 @@ export default {
   },
   mounted() {
     setInterval(userService.refreshToken, 30 * 60 * 1000);
+    this.$bus.$on(commonConstants.BUS_EVENT_SHOW_TOAST, this.handleToast);
   }
 }
 </script>
@@ -83,5 +109,41 @@ export default {
 }
 .icon-avatar  {
   border-radius: 15px;
+}
+.loader-all {
+  position: absolute;
+  height: 100vh;
+  width: 100%;
+  top: 0px;
+  left: 0px;
+  z-index: 999;
+  background: rgba(255, 255, 255, .5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.loader-wrapper {
+  background-color: white !important;
+  border: none;
+}
+.loader-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+.cus-toast-wrapper {
+  position: absolute;
+  top: 65px;
+  left: 0px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  z-index: 10;
+}
+.cus-toast-body {
+  padding: 3px 150px;
+  border-radius: 3px;
+}
+.modal-backdrop {
+  opacity: 0.5;
 }
 </style>

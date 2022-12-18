@@ -9,7 +9,6 @@ const state = user
 const actions = {
   login({ dispatch, commit }, { username, password }) {
     commit('loginRequest', { username })
-
     userService.login(username, password)
       .then(
         user => {
@@ -44,6 +43,9 @@ const actions = {
           dispatch('alert/error', error, { root: true })
         }
       )
+  },
+  updateProfile({ dispatch, commit }, payload) {
+    commit('updateProfile', payload);
   }
 }
 
@@ -55,6 +57,13 @@ const mutations = {
   loginSuccess(state, user) {
     state.status = { loggedIn: true }
     state.user = user
+  },
+  updateProfile(state, payload) {
+    state.user.firstName = payload.firstName;
+    state.user.lastName = payload.lastName;
+    state.user.fullName = payload.firstName + " " +payload.lastName;
+    state.user.avatar = payload.avatar;
+    localStorage.setItem(commonConstants.STORE_USER, JSON.stringify(state.user));
   },
   loginFailure(state) {
     state.status = {}

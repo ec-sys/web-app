@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 export const roomService = {
-  getJoinedRooms, getRoomMessages, searchRooms, getAllRooms, joinToRoom, leftToRoom
+  getJoinedRooms, getRoomMessages, searchRooms, getAllRooms,
+  joinToRoom, leftToRoom,
+  updateRoom
 }
 
 function getJoinedRooms(pageNumber, handleResponse) {
@@ -85,6 +87,17 @@ function searchRooms(params, handleResponse) {
   };
 
   axios.post(config.api.chat + '/room/search-room', params, headers)
+    .then(handleResponse) // handle ok
+    .catch(handleResponse) // handle error
+    .then(function () {}); // always executed
+}
+
+function updateRoom(params, handleResponse) {
+  const headers = {
+    headers: commonUtils.getApiHeaderJson()
+  };
+
+  axios.post(config.api.chat + '/room/update-room', params, headers)
     .then(handleResponse) // handle ok
     .catch(handleResponse) // handle error
     .then(function () {}); // always executed

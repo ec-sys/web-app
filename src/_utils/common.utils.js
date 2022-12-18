@@ -1,3 +1,5 @@
+import {EventBus} from '../event-bus';
+
 export function sayHello() {
   console.log('hello')
 }
@@ -55,4 +57,15 @@ export function getFullMonthName(targetDate) {
  */
 export function getDateAndFullMonthName(targetDate) {
   return targetDate.getDate() + " " + getFullMonthName(targetDate);
+}
+
+export function showToast(isOK, msg) {
+  if(stringUtils.isEmpty(msg)) msg = "No message!";
+  EventBus.$emit(commonConstants.BUS_EVENT_SHOW_TOAST, {isOK: isOK, msg: msg});
+}
+export function showToastSaveOK(isOK, msg) {
+  showToast(true, "Save successfully!");
+}
+export function showToastSaveNG(isOK, msg) {
+  showToast(false, "An error has occurred!");
 }

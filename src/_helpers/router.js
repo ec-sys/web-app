@@ -6,6 +6,7 @@ import LoginPage from '../login/LoginPage'
 import RegisterPage from '../register/RegisterPage'
 import ChatPage from '../chat/ChatPage'
 import RoomListPage from '../management/RoomListPage'
+import ProfilePage from '../user/ProfilePage'
 
 Vue.use(Router)
 
@@ -16,7 +17,8 @@ export const router = new Router({
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
     { path: '/chat', component: ChatPage },
-    { path: '/rooms', component: RoomListPage },
+    { path: '/mng/rooms', component: RoomListPage },
+    { path: '/user/profile', component: ProfilePage },
 
     // otherwise redirect to home
     { path: '*', redirect: '/' }

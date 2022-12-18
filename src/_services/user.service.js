@@ -1,5 +1,5 @@
-import { authHeader } from '../_helpers'
-import { isObjectNull } from '../_utils/common.utils'
+import { authHeader } from '../_helpers';
+import axios from 'axios';
 
 export const userService = {
   login,
@@ -72,6 +72,35 @@ function logout() {
   localStorage.removeItem(commonConstants.STORE_USER)
 }
 
+function update(params, handleResponse) {
+  const headers = {
+    headers: commonUtils.getApiHeaderJson()
+  };
+
+  axios.post(`${config.api.uaa}/user/update-profile`, params, headers)
+    .then(handleResponse) // handle ok
+    .catch(handleResponse) // handle error
+    .then(function () {}); // always executed
+}
+
+function handleResponse(response) {
+  return response.text().then(text => {
+    const data = text && JSON.parse(text)
+    if (!response.ok) {
+      if (response.status === 401) {
+        // auto logout if 401 response returned from api
+        logout()
+        location.reload(true)
+      }
+
+      const error = (data && data.message) || response.statusText
+      return Promise.reject(error)
+    }
+
+    return data
+  })
+}
+
 function register(user) {
   const requestOptions = {
     method: 'POST',
@@ -101,16 +130,6 @@ function getById(id) {
   return fetch(`${config.api.uaa}/users/${id}`, requestOptions).then(handleResponse)
 }
 
-function update(user) {
-  const requestOptions = {
-    method: 'PUT',
-    headers: { ...authHeader(), 'Content-Type': 'application/json' },
-    body: JSON.stringify(user)
-  }
-
-  return fetch(`${config.api.uaa}/users/${user.id}`, requestOptions).then(handleResponse)
-}
-
 // prefixed function name with underscore because delete is a reserved word in javascript
 function _delete(id) {
   const requestOptions = {
@@ -119,22 +138,4 @@ function _delete(id) {
   }
 
   return fetch(`${config.api.uaa}/users/${id}`, requestOptions).then(handleResponse)
-}
-
-function handleResponse(response) {
-  return response.text().then(text => {
-    const data = text && JSON.parse(text)
-    if (!response.ok) {
-      if (response.status === 401) {
-        // auto logout if 401 response returned from api
-        logout()
-        location.reload(true)
-      }
-
-      const error = (data && data.message) || response.statusText
-      return Promise.reject(error)
-    }
-
-    return data
-  })
 }
