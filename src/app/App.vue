@@ -47,12 +47,15 @@
 import { mapState, mapActions } from 'vuex'
 import {userService} from '../_services'
 
+import { Client, Message } from '@stomp/stompjs'
+
 export default {
   data() {
     return {
       showToast: false,
       toastOK: false,
-      toastMsg: "none"
+      toastMsg: "none",
+      clientSockJs: undefined
     }
   },
   name: 'app',
@@ -68,6 +71,17 @@ export default {
       return this.toastOK ? 'bg-success' : 'bg-danger';
     }
   },
+  watch: {
+    $route(to, from) {
+      // clear alert on location change
+      this.clearAlert()
+    }
+  },
+  mounted() {
+    setInterval(userService.refreshToken, 30 * 60 * 1000);
+    this.$bus.$on(commonConstants.BUS_EVENT_SHOW_TOAST, this.handleToast);
+    this.socketHeartbeat();
+  },
   methods: {
     ...mapActions({
       clearAlert: 'alert/clear'
@@ -80,18 +94,40 @@ export default {
       this.toastMsg = payload.msg;
       this.showToast = true;
       setTimeout(() => {this.showToast = false;}, 1500);
-    }
+    },
+    socketHeartbeat() {
+      let header = this.headerWSAuth();
+      header.login = 'user';
+      header.passcode = 'password';
+      // configure client sock-js
+      this.clientSockJs = new Client({
+        brokerURL: config.ws.rtm + '/ws/system/websocket?userId=123',
+        connectHeaders: header,
+        debug: function(str) {
+          console.log(str);
+        },
+        reconnectDelay: 5000,
+        heartbeatIncoming: 0,
+        heartbeatOutgoing: 15000
+      })
+      this.clientSockJs.configure();
 
-  },
-  watch: {
-    $route(to, from) {
-      // clear alert on location change
-      this.clearAlert()
+      // connect to ws server
+      this.clientSockJs.onConnect = this.sockJsConnectSuccess;
+      this.clientSockJs.onStompError = this.sockJsConnectError;
+      this.clientSockJs.activate();
+    },
+    headerWSAuth() {
+      return commonUtils.getWSAuthHeader();
+    },
+    sockJsConnectSuccess(frame) {
+      console.log(frame);
+      console.log("connected, session id: " + this.clientSockJs.sessionId);
+    },
+    sockJsConnectError(frame) {
+      console.error('Broker reported error: ' + frame.headers['message'])
+      console.error('Additional details: ' + frame.body)
     }
-  },
-  mounted() {
-    setInterval(userService.refreshToken, 30 * 60 * 1000);
-    this.$bus.$on(commonConstants.BUS_EVENT_SHOW_TOAST, this.handleToast);
   }
 }
 </script>

@@ -70,7 +70,9 @@ export default {
     clientSockJs = new Client({
       brokerURL: this.WS_CHAT_URL,
       connectHeaders: this.headerWSAuth(),
-      debug: function(str) {},
+      debug: function(str) {
+        console.log(str);
+      },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000

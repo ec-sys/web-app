@@ -38,7 +38,7 @@ function login(username, password) {
     })
 }
 
-function refreshToken() {
+function refreshToken(callbackFunc) {
   const storeUser = commonUtils.getStoreUser();
   if(commonUtils.isObjectNull(storeUser) || commonUtils.isObjectNull(storeUser.token)) {
     logout();
@@ -60,9 +60,15 @@ function refreshToken() {
     .then(handleResponse)
     .then(response => {
       if (stringUtils.isEmpty(response.errorCode)) {
+        // update access token
         storeUser.token.accessToken = response.accessToken;
+        storeUser.token.accessTokenExpireTime = response.accessTokenExpireTime;
+        // update refresh token
         storeUser.token.refreshToken = response.refreshToken;
+        storeUser.token.refreshTokenExpireTime = response.refreshTokenExpireTime;
+        // set again to local storage
         localStorage.setItem(commonConstants.STORE_USER, JSON.stringify(storeUser));
+        callbackFunc();
       }
     });
 }
