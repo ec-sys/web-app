@@ -8,7 +8,8 @@ const local = {
     chat: 'http://' + localHostIp + ':8080/api/chat'
   },
   ws: {
-    rtm: 'ws://' + localHostIp + ':8080/ws/rtm'
+    rtm: 'ws://' + localHostIp + ':8080/ws/rtm',
+    pnt: 'ws://' + localHostIp + ':8080/ws/pnt'
   }
 }
 

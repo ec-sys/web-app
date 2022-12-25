@@ -4,7 +4,7 @@
       <span :class="['text-white cus-toast-body', getToastClass]">{{toastMsg}}</span>
     </div>
     <div class='container'>
-      <nav class="navbar navbar-expand-lg navbar-light" v-if="!isLoginPage">
+      <nav class="navbar navbar-expand-lg navbar-light" v-if="!isUnAuthPage">
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item mr-3">
@@ -64,7 +64,7 @@ export default {
       alert: state => state.alert,
       account: state => state.account
     }),
-    isLoginPage() {
+    isUnAuthPage() {
       return this.$route.path == "/login";
     },
     getToastClass () {
@@ -74,13 +74,22 @@ export default {
   watch: {
     $route(to, from) {
       // clear alert on location change
-      this.clearAlert()
+      this.clearAlert();
+      if(!this.isUnAuthPage && this.clientSockJs == undefined) {
+        this.socketHeartbeat();
+      }
+      if(this.isUnAuthPage) {
+        this.clientSockJs.deactivate();
+        this.clientSockJs = undefined;
+      }
     }
   },
   mounted() {
     setInterval(userService.refreshToken, 30 * 60 * 1000);
     this.$bus.$on(commonConstants.BUS_EVENT_SHOW_TOAST, this.handleToast);
-    this.socketHeartbeat();
+    if(!this.isUnAuthPage && this.clientSockJs == undefined) {
+      this.socketHeartbeat();
+    }
   },
   methods: {
     ...mapActions({
@@ -97,11 +106,9 @@ export default {
     },
     socketHeartbeat() {
       let header = this.headerWSAuth();
-      header.login = 'user';
-      header.passcode = 'password';
       // configure client sock-js
       this.clientSockJs = new Client({
-        brokerURL: config.ws.rtm + '/ws/system/websocket?userId=123',
+        brokerURL: config.ws.pnt + '/ws/notify/websocket',
         connectHeaders: header,
         debug: function(str) {
           console.log(str);

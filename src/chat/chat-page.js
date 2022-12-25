@@ -74,8 +74,8 @@ export default {
         console.log(str);
       },
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000
+      heartbeatIncoming: 0,
+      heartbeatOutgoing: 0
     })
     clientSockJs.configure();
 
